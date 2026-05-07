@@ -1,83 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Sentiment Analyzer</title>
 
     <style>
-        body{
+
+        *{
             margin:0;
             padding:0;
+            box-sizing:border-box;
             font-family:Arial, sans-serif;
+        }
+
+        body{
             background:#0f172a;
             color:white;
+            min-height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            padding:20px;
         }
 
         .container{
-            width:90%;
-            max-width:1000px;
-            margin:auto;
-            padding:30px;
+            width:100%;
+            max-width:700px;
         }
 
         h1{
             text-align:center;
-            color:#38bdf8;
-            margin-bottom:30px;
+            margin-bottom:20px;
+            color:#00ffff;
         }
 
         .card{
             background:#1e293b;
-            padding:20px;
-            border-radius:10px;
+            padding:25px;
+            border-radius:12px;
             margin-bottom:20px;
             box-shadow:0 0 10px rgba(0,0,0,0.3);
         }
 
-        input, textarea{
+        h2{
+            margin-bottom:15px;
+            color:#ffcc00;
+        }
+
+        .input-box,
+        textarea{
             width:100%;
-            padding:12px;
-            margin-top:10px;
+            padding:14px;
+            margin-bottom:15px;
             border:none;
-            border-radius:5px;
+            border-radius:8px;
             font-size:16px;
+        }
+
+        textarea{
+            resize:none;
         }
 
         button{
-            background:#38bdf8;
-            color:white;
+            background:#00e5ff;
+            color:black;
             border:none;
             padding:12px 20px;
-            margin-top:15px;
-            border-radius:5px;
+            border-radius:8px;
             cursor:pointer;
             font-size:16px;
+            font-weight:bold;
         }
 
         button:hover{
-            background:#0284c7;
+            background:#00ffff;
         }
 
-        .result{
-            margin-top:20px;
-            padding:15px;
-            border-radius:5px;
-            background:#334155;
+        #result{
+            margin-top:15px;
+            font-size:24px;
+            font-weight:bold;
         }
 
         .positive{
-            color:#22c55e;
+            color:#00ff99;
         }
 
         .negative{
-            color:#ef4444;
+            color:#ff4d4d;
         }
 
         .neutral{
-            color:#facc15;
+            color:#ffd633;
         }
+
+        .stars{
+            font-size:28px;
+            color:gold;
+            margin-bottom:15px;
+            cursor:pointer;
+        }
+
+        ul{
+            padding-left:20px;
+        }
+
+        li{
+            margin-bottom:10px;
+        }
+
+        .toggle-btn{
+            margin-bottom:20px;
+        }
+
+        .light-mode{
+            background:#f4f4f4;
+            color:black;
+        }
+
+        .light-mode .card{
+            background:white;
+            color:black;
+        }
+
+        @media(max-width:600px){
+
+            h1{
+                font-size:28px;
+            }
+
+            button{
+                width:100%;
+            }
+
+        }
+
     </style>
+
 </head>
 
 <body>
@@ -86,18 +147,100 @@
 
         <h1>Product Sentiment Analyzer</h1>
 
+        <button class="toggle-btn" onclick="toggleMode()" id="modeBtn">
+            Light Mode
+        </button>
+
+        <!-- LOGIN SECTION -->
+
         <div class="card">
+
+            <h2>Login</h2>
+
+            <input 
+                type="text" 
+                placeholder="Enter Username"
+                class="input-box"
+                id="username">
+
+            <input 
+                type="password"
+                placeholder="Enter Password"
+                class="input-box"
+                id="password">
+
+            <button onclick="loginUser()">
+                Login
+            </button>
+
+        </div>
+
+        <!-- SEARCH SECTION -->
+
+        <div class="card">
+
+            <h2>Search Product</h2>
+
+            <input 
+                type="text"
+                placeholder="Search product..."
+                class="input-box"
+                id="searchInput">
+
+            <button onclick="searchProduct()">
+                Search
+            </button>
+
+        </div>
+
+        <!-- REVIEW SECTION -->
+
+        <div class="card">
+
             <h2>Enter Product Review</h2>
 
-            <textarea id="review" rows="6" placeholder="Enter your review here..."></textarea>
+            <textarea 
+                id="review"
+                rows="6"
+                placeholder="Enter your review here...">
+            </textarea>
+
+            <div class="stars">
+                ★ ★ ★ ★ ★
+            </div>
 
             <button onclick="analyzeSentiment()">
                 Analyze Sentiment
             </button>
 
-            <div id="result" class="result">
+            <div id="result">
                 Result will appear here...
             </div>
+
+        </div>
+
+        <!-- HISTORY SECTION -->
+
+        <div class="card">
+
+            <h2>Review History</h2>
+
+            <ul id="history">
+
+                <li>
+                    i like the product → Neutral
+                </li>
+
+                <li>
+                    the product is too good and effective → Positive
+                </li>
+
+                <li>
+                    the quality of the product was poor → Negative
+                </li>
+
+            </ul>
+
         </div>
 
     </div>
@@ -106,67 +249,123 @@
 
         function analyzeSentiment(){
 
-            let review = document.getElementById("review").value.toLowerCase();
+            let review =
+                document.getElementById("review")
+                .value
+                .toLowerCase();
 
-            let positiveWords = [
-                "good",
-                "excellent",
-                "amazing",
-                "best",
-                "love",
-                "great",
-                "awesome",
-                "nice"
-            ];
+            let result =
+                document.getElementById("result");
 
-            let negativeWords = [
-                "bad",
-                "worst",
-                "poor",
-                "hate",
-                "terrible",
-                "awful",
-                "slow",
-                "problem"
-            ];
-
-            let positiveScore = 0;
-            let negativeScore = 0;
-
-            positiveWords.forEach(word => {
-                if(review.includes(word)){
-                    positiveScore++;
-                }
-            });
-
-            negativeWords.forEach(word => {
-                if(review.includes(word)){
-                    negativeScore++;
-                }
-            });
-
-            let result = document.getElementById("result");
-
-            if(positiveScore > negativeScore){
+            if(
+                review.includes("good") ||
+                review.includes("excellent") ||
+                review.includes("amazing") ||
+                review.includes("best") ||
+                review.includes("love")
+            ){
 
                 result.innerHTML =
-                    "<h2 class='positive'>Positive Review 😊</h2>";
+                    "Positive Review 😊";
 
+                result.className =
+                    "positive";
             }
-            else if(negativeScore > positiveScore){
+
+            else if(
+                review.includes("bad") ||
+                review.includes("poor") ||
+                review.includes("worst") ||
+                review.includes("hate")
+            ){
 
                 result.innerHTML =
-                    "<h2 class='negative'>Negative Review 😔</h2>";
+                    "Negative Review 😔";
 
+                result.className =
+                    "negative";
             }
+
             else{
 
                 result.innerHTML =
-                    "<h2 class='neutral'>Neutral Review 😐</h2>";
+                    "Neutral Review 😐";
+
+                result.className =
+                    "neutral";
             }
+
+        }
+
+        function toggleMode(){
+
+            document.body.classList.toggle("light-mode");
+
+            let btn =
+                document.getElementById("modeBtn");
+
+            if(
+                document.body.classList.contains("light-mode")
+            ){
+
+                btn.innerText =
+                    "Dark Mode";
+            }
+
+            else{
+
+                btn.innerText =
+                    "Light Mode";
+            }
+
+        }
+
+        function loginUser(){
+
+            let username =
+                document.getElementById("username").value;
+
+            let password =
+                document.getElementById("password").value;
+
+            if(
+                username === "" ||
+                password === ""
+            ){
+
+                alert("Please enter username and password");
+
+            }
+
+            else{
+
+                alert("Login Successful ✅");
+
+            }
+
+        }
+
+        function searchProduct(){
+
+            let product =
+                document.getElementById("searchInput").value;
+
+            if(product === ""){
+
+                alert("Please enter a product name");
+
+            }
+
+            else{
+
+                alert("Searching for: " + product + " 🔍");
+
+            }
+
         }
 
     </script>
 
 </body>
+
 </html>
