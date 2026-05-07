@@ -1,1 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Sentiment Analyzer</title>
 
+    <style>
+        body{
+            margin:0;
+            padding:0;
+            font-family:Arial, sans-serif;
+            background:#0f172a;
+            color:white;
+        }
+
+        .container{
+            width:90%;
+            max-width:1000px;
+            margin:auto;
+            padding:30px;
+        }
+
+        h1{
+            text-align:center;
+            color:#38bdf8;
+            margin-bottom:30px;
+        }
+
+        .card{
+            background:#1e293b;
+            padding:20px;
+            border-radius:10px;
+            margin-bottom:20px;
+            box-shadow:0 0 10px rgba(0,0,0,0.3);
+        }
+
+        input, textarea{
+            width:100%;
+            padding:12px;
+            margin-top:10px;
+            border:none;
+            border-radius:5px;
+            font-size:16px;
+        }
+
+        button{
+            background:#38bdf8;
+            color:white;
+            border:none;
+            padding:12px 20px;
+            margin-top:15px;
+            border-radius:5px;
+            cursor:pointer;
+            font-size:16px;
+        }
+
+        button:hover{
+            background:#0284c7;
+        }
+
+        .result{
+            margin-top:20px;
+            padding:15px;
+            border-radius:5px;
+            background:#334155;
+        }
+
+        .positive{
+            color:#22c55e;
+        }
+
+        .negative{
+            color:#ef4444;
+        }
+
+        .neutral{
+            color:#facc15;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>Product Sentiment Analyzer</h1>
+
+        <div class="card">
+            <h2>Enter Product Review</h2>
+
+            <textarea id="review" rows="6" placeholder="Enter your review here..."></textarea>
+
+            <button onclick="analyzeSentiment()">
+                Analyze Sentiment
+            </button>
+
+            <div id="result" class="result">
+                Result will appear here...
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+
+        function analyzeSentiment(){
+
+            let review = document.getElementById("review").value.toLowerCase();
+
+            let positiveWords = [
+                "good",
+                "excellent",
+                "amazing",
+                "best",
+                "love",
+                "great",
+                "awesome",
+                "nice"
+            ];
+
+            let negativeWords = [
+                "bad",
+                "worst",
+                "poor",
+                "hate",
+                "terrible",
+                "awful",
+                "slow",
+                "problem"
+            ];
+
+            let positiveScore = 0;
+            let negativeScore = 0;
+
+            positiveWords.forEach(word => {
+                if(review.includes(word)){
+                    positiveScore++;
+                }
+            });
+
+            negativeWords.forEach(word => {
+                if(review.includes(word)){
+                    negativeScore++;
+                }
+            });
+
+            let result = document.getElementById("result");
+
+            if(positiveScore > negativeScore){
+
+                result.innerHTML =
+                    "<h2 class='positive'>Positive Review 😊</h2>";
+
+            }
+            else if(negativeScore > positiveScore){
+
+                result.innerHTML =
+                    "<h2 class='negative'>Negative Review 😔</h2>";
+
+            }
+            else{
+
+                result.innerHTML =
+                    "<h2 class='neutral'>Neutral Review 😐</h2>";
+            }
+        }
+
+    </script>
+
+</body>
+</html>
