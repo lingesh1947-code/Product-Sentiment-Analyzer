@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amazon Scraper – Code Explanation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg: #0f0f13;
+    --surface: #1a1a24;
+    --card: #20202e;
+    --border: #2e2e42;
+    --accent: #ff6b6b;
+    --green: #51cf66;
+    --blue: #74c0fc;
+    --yellow: #ffd43b;
+    --purple: #cc5de8;
+    --orange: #ff922b;
+    --text: #e8e8f0;
+    --muted: #6e6e8a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    padding: 20px 16px 48px;
+    line-height: 1.7;
+  }
+
+  .header {
+    text-align: center;
+    padding: 36px 16px;
+    margin-bottom: 28px;
+  }
+
+  .header h1 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  .header p {
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    margin-top: 6px;
+  }
+
+  .role-pill {
+    display: inline-block;
+    background: #ff6b6b22;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 14px;
+  }
+
+  /* Section cards */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+
+  .section-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  .num-red    { background: #ff6b6b33; color: var(--accent); }
+  .num-green  { background: #51cf6633; color: var(--green); }
+  .num-blue   { background: #74c0fc33; color: var(--blue); }
+  .num-yellow { background: #ffd43b33; color: var(--yellow); }
+  .num-purple { background: #cc5de833; color: var(--purple); }
+  .num-orange { background: #ff922b33; color: var(--orange); }
+
+  .section-title-text h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .section-title-text p {
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .section-body { padding: 18px 20px; }
+
+  .what-it-does {
+    background: var(--card);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    font-size: 0.88rem;
+    color: #b8b8d0;
+    border-left: 3px solid var(--blue);
+  }
+
+  .what-it-does strong { color: var(--blue); }
+
+  /* Code block */
+  .code-wrap {
+    background: #0a0a10;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 12px 0;
+  }
+
+  .code-label {
+    background: #161620;
+    padding: 6px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .code-label span { color: var(--green); }
+
+  pre {
+    padding: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.8;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .c  { color: #5a5a7a; font-style: italic; }   /* comment */
+  .kw { color: var(--purple); }                  /* keyword */
+  .fn { color: var(--yellow); }                  /* function */
+  .st { color: var(--green); }                   /* string */
+  .nm { color: var(--orange); }                  /* number */
+  .cl { color: var(--blue); }                    /* class/import */
+  .va { color: #e8e8f0; }                        /* variable */
+  .op { color: var(--accent); }                  /* operator */
+
+  /* Explanation points */
+  .explain-list { list-style: none; margin: 10px 0; }
+  .explain-list li {
+    display: flex;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px dashed var(--border);
+    font-size: 0.88rem;
+    align-items: flex-start;
+  }
+  .explain-list li:last-child { border-bottom: none; }
+  .explain-list .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .tag-r { background:#ff6b6b22; color:var(--accent); border:1px solid var(--accent); }
+  .tag-g { background:#51cf6622; color:var(--green);  border:1px solid var(--green); }
+  .tag-b { background:#74c0fc22; color:var(--blue);   border:1px solid var(--blue); }
+  .tag-y { background:#ffd43b22; color:var(--yellow); border:1px solid var(--yellow); }
+  .tag-p { background:#cc5de822; color:var(--purple); border:1px solid var(--purple); }
+
+  .info  { background:#74c0fc15; border-left:3px solid var(--blue);   border-radius:0 8px 8px 0; padding:10px 14px; margin:10px 0; font-size:0.86rem; }
+  .warn  { background:#ffd43b15; border-left:3px solid var(--yellow); border-radius:0 8px 8px 0; padding:10px 14px; margin:10px 0; font-size:0.86rem; }
+  .good  { background:#51cf6615; border-left:3px solid var(--green);  border-radius:0 8px 8px 0; padding:10px 14px; margin:10px 0; font-size:0.86rem; }
+
+  /* Flow chart */
+  .flow { display:flex; flex-direction:column; gap:0; }
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--border);
+  }
+  .flow-row:last-child { border-bottom: none; }
+  .flow-icon { font-size: 1.4rem; flex-shrink: 0; width: 36px; text-align: center; }
+  .flow-text h4 { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+  .flow-text p  { font-size: 0.8rem; color: var(--muted); }
+
+  /* MongoDB document preview */
+  .mongo-doc {
+    background: #0a0a10;
+    border: 1px solid var(--green);
+    border-radius: 10px;
+    padding: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.9;
+  }
+
+  .mk { color: var(--blue); }
+  .mv { color: var(--green); }
+  .mn { color: var(--orange); }
+  .mb { color: var(--purple); }
+  .mc { color: var(--muted); }
+
+  /* Install steps */
+  .install-step {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--border);
+    align-items: flex-start;
+  }
+  .install-step:last-child { border-bottom: none; }
+  .step-dot {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 800;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .dot-r { background: var(--accent); color: #0f0f13; }
+  .dot-g { background: var(--green);  color: #0f0f13; }
+  .dot-b { background: var(--blue);   color: #0f0f13; }
+  .dot-y { background: var(--yellow); color: #0f0f13; }
+
+  .install-step h4 { font-size: 0.88rem; font-weight: 700; }
+  .install-step p  { font-size: 0.82rem; color: var(--muted); }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    background: var(--card);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--yellow);
+  }
+
+  h4 { font-size: 0.92rem; margin: 14px 0 6px; }
+  p  { font-size: 0.88rem; color: #b8b8d0; margin: 6px 0; }
+
+  .footer {
+    text-align: center;
+    margin-top: 32px;
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="role-pill">🕷️ Role 5 — Amazon Scraping Developer</div>
+  <h1>Amazon Scraper — Full Explanation</h1>
+  <p>backend/scraper/amazon_scraper.py • Selenium + BeautifulSoup + MongoDB</p>
+</div>
+
+
+<!-- ======= HOW TO RUN ======= -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num num-green">▶</div>
+    <div class="section-title-text">
+      <h3>How to Install & Run</h3>
+      <p>Do this before running the code</p>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="install-step">
+      <div class="step-dot dot-r">1</div>
+      <div>
+        <h4>Install Chrome & ChromeDriver</h4>
+        <p>Download Google Chrome browser. ChromeDriver installs automatically via webdriver-manager.</p>
+      </div>
+    </div>
+    <div class="install-step">
+      <div class="step-dot dot-g">2</div>
+      <div>
+        <h4>Install Python libraries</h4>
+        <div class="code-wrap">
+          <pre><span style="color:var(--green)">pip install -r requirements.txt</span>
+
+<span class="c"># OR install one by one:</span>
+pip install selenium beautifulsoup4 pymongo webdriver-manager</pre>
+        </div>
+      </div>
+    </div>
+    <div class="install-step">
+      <div class="step-dot dot-b">3</div>
+      <div>
+        <h4>Start MongoDB (local)</h4>
+        <div class="code-wrap">
+          <pre><span style="color:var(--green)">mongod</span>   <span class="c"># Start MongoDB server</span></pre>
+        </div>
+      </div>
+    </div>
+    <div class="install-step">
+      <div class="step-dot dot-y">4</div>
+      <div>
+        <h4>Run the scraper</h4>
+        <div class="code-wrap">
+          <pre><span style="color:var(--green)">py amazon_scraper.py</span></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ======= OVERALL FLOW ======= -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num num-blue">🔄</div>
+    <div class="section-title-text">
+      <h3>How the Code Works — Overall Flow</h3>
+      <p>Step by step process</p>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="flow">
+      <div class="flow-row">
+        <div class="flow-icon">🔌</div>
+        <div class="flow-text">
+          <h4>Step 1 — Connect MongoDB</h4>
+          <p>Opens database connection, selects "amazon_reviews" collection</p>
+        </div>
+      </div>
+      <div class="flow-row">
+        <div class="flow-icon">🌐</div>
+        <div class="flow-text">
+          <h4>Step 2 — Open Chrome (Headless)</h4>
+          <p>Selenium starts Chrome browser invisibly in the background</p>
+        </div>
+      </div>
+      <div class="flow-row">
+        <div class="flow-icon">🔍</div>
+        <div class="flow-text">
+          <h4>Step 3 — Search Amazon</h4>
+          <p>Goes to amazon.in, types product name, clicks first result</p>
+        </div>
+      </div>
+      <div class="flow-row">
+        <div class="flow-icon">📦</div>
+        <div class="flow-text">
+          <h4>Step 4 — Scrape Product Info</h4>
+          <p>Gets product name, rating, price, review count from product page</p>
+        </div>
+      </div>
+      <div class="flow-row">
+        <div class="flow-icon">📝</div>
+        <div class="flow-text">
+          <h4>Step 5 — Scrape Reviews (Page by Page)</h4>
+          <p>Reads all reviews on current page, clicks Next, repeats up to max_pages</p>
+        </div>
+      </div>
+      <div class="flow-row">
+        <div class="flow-icon">💾</div>
+        <div class="flow-text">
+          <h4>Step 6 — Save to MongoDB</h4>
+          <p>Each review saved as one document. Duplicates are skipped.</p>
+        </div>
+      </div>
+      <div class="flow-row">
+        <div class="flow-icon">🔒</div>
+        <div class="flow-text">
+          <h4>Step 7 — Close Browser</h4>
+          <p>Browser closes automatically after scraping is done</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ======= SECTION 1 ======= -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num num-red">1</div>
+    <div class="section-title-text">
+      <h3>connect_mongodb()</h3>
+      <p>Database connection function</p>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="what-it-does">
+      <strong>What it does:</strong> Connects Python to MongoDB database and returns the collection where reviews will be stored.
+    </div>
+    <div class="code-wrap">
+      <div class="code-label">python <span>connect_mongodb()</span></div>
+      <pre><span class="kw">def</span> <span class="fn">connect_mongodb</span>():
+    uri = <span class="st">"mongodb://localhost:27017/"</span>
+    client = <span class="cl">MongoClient</span>(uri)
+    db = client[<span class="st">"sentiment_analyzer"</span>]
+    collection = db[<span class="st">"amazon_reviews"</span>]
+    <span class="kw">return</span> collection</pre>
+    </div>
+    <ul class="explain-list">
+      <li><span class="tag tag-b">MongoClient</span> Connects Python to MongoDB server running on your computer</li>
+      <li><span class="tag tag-g">database</span> <code>sentiment_analyzer</code> = your project's database name</li>
+      <li><span class="tag tag-y">collection</span> <code>amazon_reviews</code> = like a table, stores each review as one row</li>
+      <li><span class="tag tag-r">return</span> Returns the collection so other functions can save data into it</li>
+    </ul>
+  </div>
+</div>
+
+
+<!-- ======= SECTION 2 ======= -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num num-green">2</div>
+    <div class="section-title-text">
+      <h3>setup_driver()</h3>
+      <p>Browser setup function</p>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="what-it-does">
+      <strong>What it does:</strong> Creates and configures a Chrome browser that Selenium will control automatically.
+    </div>
+    <div class="code-wrap">
+      <div class="code-label">python <span>setup_driver()</span></div>
+      <pre>options.<span class="fn">add_argument</span>(<span class="st">"--headless"</span>)     <span class="c"># No window</span>
+options.<span class="fn">add_argument</span>(<span class="st">"--no-sandbox"</span>)    <span class="c"># Prevent errors</span>
+options.<span class="fn">add_argument</span>(<span class="st">"user-agent=Mozilla/5.0..."</span>)  <span class="c"># Fake real browser</span>
+driver = <span class="cl">webdriver</span>.<span class="fn">Chrome</span>(options=options)</pre>
+    </div>
+    <ul class="explain-list">
+      <li><span class="tag tag-r">--headless</span> Browser runs invisibly — no window opens on screen</li>
+      <li><span class="tag tag-g">user-agent</span> Makes Chrome pretend to be a real human browser so Amazon doesn't block us</li>
+      <li><span class="tag tag-b">webdriver</span> Selenium takes control of Chrome — it can click, type, scroll automatically</li>
+    </ul>
+    <div class="warn">⚠️ If you get ChromeDriver error, run: <code>pip install webdriver-manager</code> and add <code>ChromeDriverManager().install()</code></div>
+  </div>
+</div>
+
+
+<!-- ======= SECTION 3 ======= -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num num-blue">3</div>
+    <div class="section-title-text">
+      <h3>search_amazon()</h3>
+      <p>Searches Amazon and finds the product</p>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="what-it-does">
+      <strong>What it does:</strong> Opens amazon.in, types the product name in search box, presses Enter, and clicks the first product result.
+    </div>
+    <div class="code-wrap">
+      <div class="code-label">python <span>search_amazon()</span></div>
+      <pre>driver.<span class="fn">get</span>(<span class="st">"https://www.amazon.in"</span>)
+
+search_box = <span class="cl">WebDriverWait</span>(driver, <span class="nm">10</span>).<span class="fn">until</span>(
+    <span class="cl">EC</span>.<span class="fn">presence_of_element_located</span>((<span class="cl">By</span>.ID, <span class="st">"twotabsearchtextbox"</span>))
+)
+search_box.<span class="fn">send_keys</span>(product_name)
+search_box.<span class="fn">send_keys</span>(<span class="cl">Keys</span>.RETURN)</pre>
+    </div>
+    <ul class="explain-list">
+      <li><span class="tag tag-b">driver.get()</span> Opens the URL in the Chrome browser</li>
+      <li><span class="tag tag-g">WebDriverWait</span> Waits up to 10 seconds for the search box to appear before typing</li>
+      <li><span class="tag tag-y">twotabsearchtextbox</span> This is Amazon's search box HTML id — Selenium finds it and types in it</li>
+      <li><span class="tag tag-r">Keys.RETURN</span> Presses the Enter key to search</li>
+    </ul>
+  </div>
+</div>
+
+
+<!-- ======= SECTION 4 ======= -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num num-yellow">4</div>
+    <div class="section-title-text">
+      <h3>scrape_product_details()</h3>
+      <p>Gets name, rating, price from product page</p>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="what-it-does">
+      <strong>What it does:</strong> Uses BeautifulSoup to read the HTML of the product page and extracts product name, star rating, price, and review count.
+    </div>
+    <div class="code-wrap">
+      <div class="code-label">python <span>BeautifulSoup parsing</span></div>
+      <pre>soup = <span class="cl">BeautifulSoup</span>(driver.page_source, <span class="st">"html.parser"</span>)
+
+<span class="c"># Product name</span>
+name = soup.<span class="fn">find</span>(<span class="st">"span"</span>, {<span class="st">"id"</span>: <span class="st">"productTitle"</span>}).<span class="fn">get_text</span>(strip=<span class="kw">True</span>)
+
+<span class="c"># Rating number: "4.3 out of 5" → 4.3</span>
+rating_number = <span class="cl">float</span>(re.<span class="fn">search</span>(<span class="st">r"[\d.]+"</span>, overall_rating).<span class="fn">group</span>())</pre>
+    </div>
+    <ul class="explain-list">
+      <li><span class="tag tag-b">page_source</span> Gets the full HTML code of the current page</li>
+      <li><span class="tag tag-g">BeautifulSoup</span> Reads the HTML and lets us search for specific elements easily</li>
+      <li><span class="tag tag-y">soup.find()</span> Searches for an HTML tag with a specific id or class</li>
+      <li><span class="tag tag-r">re.search()</span> Regular expression — extracts just the number from text like "4.3 out of 5 stars"</li>
+      <li><span class="tag tag-p">get_text()</span> Gets only the visible text, strips extra spaces</li>
+    </ul>
+  </div>
+</div>
+
+
+<!-- ======= SECTION 5 ======= -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num num-purple">5</div>
+    <div class="section-title-text">
+      <h3>scrape_reviews_from_page()</h3>
+      <p>Most important function — extracts all review data</p>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="what-it-does">
+      <strong>What it does:</strong> Reads the HTML of the reviews page and extracts all fields from each review block — reviewer name, star rating, title, body text, date, verified status.
+    </div>
+    <div class="code-wrap">
+      <div class="code-label">python <span>Review extraction</span></div>
+      <pre><span class="c"># Find ALL review blocks on the page</span>
+review_blocks = soup.<span class="fn">find_all</span>(<span class="st">"div"</span>, {<span class="st">"data-hook"</span>: <span class="st">"review"</span>})
+
+<span class="kw">for</span> block <span class="kw">in</span> review_blocks:
+    reviewer = block.<span class="fn">find</span>(<span class="st">"span"</span>, {<span class="st">"class"</span>: <span class="st">"a-profile-name"</span>}).<span class="fn">get_text</span>()
+    stars    = block.<span class="fn">find</span>(<span class="st">"i"</span>, {<span class="st">"data-hook"</span>: <span class="st">"review-star-rating"</span>})
+    title    = block.<span class="fn">find</span>(<span class="st">"a"</span>, {<span class="st">"data-hook"</span>: <span class="st">"review-title"</span>}).<span class="fn">get_text</span>()
+    body     = block.<span class="fn">find</span>(<span class="st">"span"</span>, {<span class="st">"data-hook"</span>: <span class="st">"review-body"</span>}).<span class="fn">get_text</span>()</pre>
+    </div>
+    <ul class="explain-list">
+      <li><span class="tag tag-r">find_all()</span> Finds EVERY review block on the page — returns a list</li>
+      <li><span class="tag tag-g">for block in</span> Loop — processes each review one by one</li>
+      <li><span class="tag tag-b">data-hook</span> Amazon uses this HTML attribute to identify review elements</li>
+      <li><span class="tag tag-y">try/except</span> If any field is missing, it won't crash — uses a default value instead</li>
+      <li><span class="tag tag-p">sentiment: None</span> Left empty — NLP team (Role 7) will fill this with Positive/Negative/Neutral</li>
+    </ul>
+
+    <h4>What each review document looks like:</h4>
+    <div class="mongo-doc">
+      {<br>
+      &nbsp;&nbsp;<span class="mk">"product_name"</span>: <span class="mv">"Samsung Galaxy S24"</span>,<br>
+      &nbsp;&nbsp;<span class="mk">"reviewer_name"</span>: <span class="mv">"Ramesh K"</span>,<br>
+      &nbsp;&nbsp;<span class="mk">"star_rating"</span>: <span class="mn">4.0</span>,<br>
+      &nbsp;&nbsp;<span class="mk">"review_title"</span>: <span class="mv">"Great phone, fast performance"</span>,<br>
+      &nbsp;&nbsp;<span class="mk">"review_body"</span>: <span class="mv">"Battery life is excellent..."</span>,<br>
+      &nbsp;&nbsp;<span class="mk">"review_date"</span>: <span class="mv">"Reviewed in India on 12 April 2025"</span>,<br>
+      &nbsp;&nbsp;<span class="mk">"verified_purchase"</span>: <span class="mb">true</span>,<br>
+      &nbsp;&nbsp;<span class="mk">"helpful_votes"</span>: <span class="mn">5</span>,<br>
+      &nbsp;&nbsp;<span class="mk">"sentiment"</span>: <span class="mb">null</span>, <span class="mc">← NLP team fills this</span><br>
+      &nbsp;&nbsp;<span class="mk">"source"</span>: <span class="mv">"Amazon"</span>,<br>
+      &nbsp;&nbsp;<span class="mk">"scraped_at"</span>: <span class="mv">"2026-05-07T09:15:00"</span><br>
+      }
+    </div>
+  </div>
+</div>
+
+
+<!-- ======= SECTION 6 ======= -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num num-orange">6</div>
+    <div class="section-title-text">
+      <h3>go_to_next_page() + Pagination</h3>
+      <p>Scrapes multiple pages of reviews</p>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="what-it-does">
+      <strong>What it does:</strong> After scraping one page, clicks the "Next" button and repeats. Continues until max_pages is reached or no next button found.
+    </div>
+    <div class="code-wrap">
+      <div class="code-label">python <span>Pagination loop</span></div>
+      <pre><span class="kw">for</span> page_num <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">1</span>, max_pages + <span class="nm">1</span>):
+    page_reviews = <span class="fn">scrape_reviews_from_page</span>(driver, product_title)
+    <span class="fn">save_to_mongodb</span>(collection, page_reviews)
+
+    has_next = <span class="fn">go_to_next_page</span>(driver)
+    <span class="kw">if not</span> has_next:
+        <span class="kw">break</span>   <span class="c"># No more pages, stop loop</span></pre>
+    </div>
+    <ul class="explain-list">
+      <li><span class="tag tag-b">max_pages=3</span> By default scrapes 3 pages — each page has ~10 reviews = ~30 reviews total</li>
+      <li><span class="tag tag-g">li.a-last a</span> Amazon's CSS selector for the Next page button</li>
+      <li><span class="tag tag-r">break</span> Stops the loop when there's no next page</li>
+    </ul>
+    <div class="info">💡 3 pages = ~30 reviews. Change <code>max_pages=5</code> for 50 reviews.</div>
+  </div>
+</div>
+
+
+<!-- ======= SECTION 7 ======= -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num num-green">7</div>
+    <div class="section-title-text">
+      <h3>save_to_mongodb()</h3>
+      <p>Saves reviews to database without duplicates</p>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="what-it-does">
+      <strong>What it does:</strong> Saves each review into MongoDB. Before saving, checks if the same review already exists to avoid duplicates.
+    </div>
+    <div class="code-wrap">
+      <div class="code-label">python <span>save_to_mongodb()</span></div>
+      <pre><span class="kw">for</span> review <span class="kw">in</span> reviews:
+    exists = collection.<span class="fn">find_one</span>({
+        <span class="st">"reviewer_name"</span>: review[<span class="st">"reviewer_name"</span>],
+        <span class="st">"review_title"</span>: review[<span class="st">"review_title"</span>]
+    })
+    <span class="kw">if not</span> exists:
+        collection.<span class="fn">insert_one</span>(review)   <span class="c"># Save to MongoDB</span></pre>
+    </div>
+    <ul class="explain-list">
+      <li><span class="tag tag-b">find_one()</span> Checks if a review with same name + title already exists in DB</li>
+      <li><span class="tag tag-g">insert_one()</span> Saves one review document into MongoDB collection</li>
+      <li><span class="tag tag-r">duplicate check</span> Prevents saving same review twice if you run scraper again</li>
+    </ul>
+    <div class="good">✅ MongoDB automatically creates an <code>_id</code> field for each document as unique identifier.</div>
+  </div>
+</div>
+
+
+<!-- ======= HOW YOUR CODE CONNECTS TO TEAM ======= -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num num-blue">🤝</div>
+    <div class="section-title-text">
+      <h3>How Your Code Connects to the Team</h3>
+      <p>Your output feeds the rest of the project</p>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="flow">
+      <div class="flow-row">
+        <div class="flow-icon">🕷️</div>
+        <div class="flow-text">
+          <h4>Deepa (You) — amazon_scraper.py</h4>
+          <p>Scrapes Amazon → saves reviews to MongoDB with sentiment: null</p>
+        </div>
+      </div>
+      <div class="flow-row">
+        <div class="flow-icon">🧠</div>
+        <div class="flow-text">
+          <h4>NLP Team (Role 7) — nlp_sentiment.py</h4>
+          <p>Reads reviews from MongoDB → runs TextBlob/VADER → updates sentiment field to Positive/Negative/Neutral</p>
+        </div>
+      </div>
+      <div class="flow-row">
+        <div class="flow-icon">⚙️</div>
+        <div class="flow-text">
+          <h4>Backend Team (Role 4) — Flask API</h4>
+          <p>Creates API routes that frontend can call to get reviews and sentiment data</p>
+        </div>
+      </div>
+      <div class="flow-row">
+        <div class="flow-icon">📊</div>
+        <div class="flow-text">
+          <h4>Frontend Team (Role 2 & 3) — React Dashboard</h4>
+          <p>Shows pie charts, review trends, word cloud using the sentiment data</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  Amazon Scraper — Role 5 • Product Sentiment Analyzer Major Project 🕷️
+</div>
+
+</body>
+</html>
